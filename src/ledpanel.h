@@ -10,14 +10,14 @@
 #define NUM_LEDS WIDTH*HEIGHT
 #define DATA_PIN 33
 
-#define MIN_SPEED 30
-#define MAX_SPEED 250
+#define MIN_SPEED 10
+#define MAX_SPEED 255
 
 typedef struct _textsettings_t {
     char *text;
     CRGB fcolor;
     CRGB bcolor;
-    uint32_t speed; // 30 - 250
+    uint32_t speed; // 10 - 255
     bool changed;
 } textsettings_t;
 

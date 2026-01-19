@@ -49,14 +49,40 @@ uint8_t readHexByte(char *c) {
     return (hi<<4) | lo;
 }
 
+String encodeHtmlEntities(const char* text) {
+    String result = "";
+    for (int i = 0; text[i] != '\0'; i++) {
+        switch (text[i]) {
+            case '<':
+                result += "&lt;";
+                break;
+            case '>':
+                result += "&gt;";
+                break;
+            case '&':
+                result += "&amp;";
+                break;
+            case '"':
+                result += "&quot;";
+                break;
+            case '\'':
+                result += "&#39;";
+                break;
+            default:
+                result += text[i];
+        }
+    }
+    return result;
+}
+
 void handlePostData(const String &body) {
     String data = body;
 
     int count = 0;
-    String text;
-    int speed;
-    CRGB fcolor;
-    CRGB bcolor;
+    String text = "";
+    int speed = 100;
+    CRGB fcolor = CRGB::White;
+    CRGB bcolor = CRGB::Black;
 
     int start = 0;
 
@@ -112,7 +138,7 @@ void handlePostData(const String &body) {
             text.replace("%7E", "~");
             count++;
         }
-        if (key == "speed") {
+        else if (key == "speed") {
             speed = atoi(value.c_str());
             count++;
         }
@@ -201,7 +227,8 @@ void networkTick() {
         xSemaphoreGive(textSettingsMutex);
 
         String newpage = pagebuf;
-        newpage.replace("$TEXT$", text);
+        String encodedText = encodeHtmlEntities(text);
+        newpage.replace("$TEXT$", encodedText);
 
         char strbuf[20];
         sprintf(strbuf, "%d", speed);
@@ -247,7 +274,7 @@ void networkSetup() {
     uint8_t mac_addr[8];
     esp_efuse_mac_get_default(mac_addr);
     char *ssid = new char[strlen(ssid_prefix) + 8];
-    sprintf(ssid, "%s %02X%02X%02X", ssid_prefix, mac_addr[3], mac_addr[3], mac_addr[5]);
+    sprintf(ssid, "%s %02X%02X%02X", ssid_prefix, mac_addr[3], mac_addr[4], mac_addr[5]);
 
     // Create WiFi
     WiFi.softAPConfig(localIP, gatewayIP, subnetMask);
