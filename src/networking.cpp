@@ -139,7 +139,8 @@ void handlePostData(const String &body) {
             count++;
         }
         else if (key == "speed") {
-            speed = atoi(value.c_str());
+            // out of range speed would make the scroll delay negative
+            speed = constrain(atoi(value.c_str()), MIN_SPEED, MAX_SPEED);
             count++;
         }
         else if (key == "fcolor") {

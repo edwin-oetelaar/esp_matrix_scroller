@@ -145,7 +145,7 @@ void readConfigFromFlash(textsettings_t *settings) {
     setText(settings, text);
     settings->fcolor = fcolor;
     settings->bcolor = bcolor;
-    settings->speed = speed;
+    settings->speed = constrain(speed, MIN_SPEED, MAX_SPEED);
 
     delete[] text;
     config.close();
