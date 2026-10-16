@@ -25,11 +25,18 @@ int getLedIndex(int x, int y) {
     return (x*HEIGHT)+y;
 }
 
-int getTextWidth(char* text) {
+void setPixel(int x, int y, CRGB color) {
+    int index = getLedIndex(x, y);
+    if (index != -1) {
+        leds[index] = color;
+    }
+}
+
+int getTextWidth(const char* text) {
     return strlen(text)*(FONT_WIDTH+FONT_SPACING);
 }
 
-void printText(char* text, int xpos, CRGB fcolor, CRGB bcolor, bool transparent) {
+void printText(const char* text, int xpos, CRGB fcolor, CRGB bcolor, bool transparent) {
     int len = strlen(text);
     int char_width = FONT_WIDTH + FONT_SPACING;
 
@@ -73,11 +80,11 @@ void printText(char* text, int xpos, CRGB fcolor, CRGB bcolor, bool transparent)
     }
 }
 
-void printText(char* text, int xpos, CRGB fcolor, CRGB bcolor) {
+void printText(const char* text, int xpos, CRGB fcolor, CRGB bcolor) {
     printText(text, xpos, fcolor, bcolor, false);
 }
 
-void setText(textsettings_t *settings, char *text) {
+void setText(textsettings_t *settings, const char *text) {
     delete[] settings->text;
     settings->text = new char[strlen(text)+1];
     strcpy(settings->text, text);
@@ -110,20 +117,37 @@ void writeConfigToFlash(textsettings_t *settings) {
     config.close();
 }
 
+void setDefaultConfig(textsettings_t *settings) {
+    setText(settings, "Hello World");
+    settings->fcolor = CRGB::White;
+    settings->bcolor = CRGB::Black;
+    settings->speed = 100;
+}
+
 void readConfigFromFlash(textsettings_t *settings) {
+    settings->text = nullptr;
+
     File config = LittleFS.open("/config", "r");
 
     if (!config) {
-        settings->text = nullptr;
-        setText(settings, "Hello World");
-        settings->fcolor = CRGB::White;
-        settings->bcolor = CRGB::Black;
-        settings->speed = 100;
+        setDefaultConfig(settings);
         return;
     }
 
+    // length + text + 2 colors + speed
+    const size_t overhead = sizeof(uint32_t) + 6 + sizeof(uint16_t);
+    size_t file_size = config.size();
+
     uint32_t text_length = 0;
     config.read((uint8_t *)&text_length, sizeof(text_length));
+
+    // a corrupt or truncated file must not make us allocate a bogus length
+    if (file_size < overhead || text_length > file_size - overhead) {
+        DEBUG_PRINTLN("Config file corrupt, using defaults");
+        config.close();
+        setDefaultConfig(settings);
+        return;
+    }
 
     char *text = new char[text_length+1];
     config.read((uint8_t*)text, text_length);
@@ -141,7 +165,6 @@ void readConfigFromFlash(textsettings_t *settings) {
     uint16_t speed = 0;
     config.read((uint8_t *)&speed, sizeof(speed));
 
-    settings->text = nullptr;
     setText(settings, text);
     settings->fcolor = fcolor;
     settings->bcolor = bcolor;
