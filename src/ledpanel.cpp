@@ -154,6 +154,7 @@ void readConfigFromFlash(textsettings_t *settings) {
 void LedTask(void *pvParameters) {
     // FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
     FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setMaxPowerInVoltsAndMilliamps(LED_VOLTS, LED_MAX_MILLIAMPS);
 
     xSemaphoreTake(textSettingsMutex, portMAX_DELAY);
     // Load initial settings from disk

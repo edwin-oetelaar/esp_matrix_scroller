@@ -10,6 +10,11 @@
 #define NUM_LEDS WIDTH*HEIGHT
 #define DATA_PIN 33
 
+// power budget for the panel, FastLED dims the frame to stay below it
+// full white on all leds at brightness 100 is ~24A, so keep this in check
+#define LED_VOLTS 5
+#define LED_MAX_MILLIAMPS 10000
+
 #define MIN_SPEED 10
 #define MAX_SPEED 255
 
