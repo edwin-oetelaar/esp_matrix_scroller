@@ -177,10 +177,14 @@ void networkTick() {
         String currentLine = "";
 
         bool isPost = false;
+        bool headersDone = false;
         int contentLength = 0;
 
         // if the client is connected and data is available, read it out
-        while (client.connected()) {
+        // browsers often open a socket without sending anything (preconnect),
+        // so give up after a while instead of blocking loop() forever
+        unsigned long headerStart = millis();
+        while (client.connected() && millis() - headerStart < 2000) {
             if (client.available()) {
                 char c = client.read();
                 header += c;
@@ -199,10 +203,20 @@ void networkTick() {
                         contentLength = header.substring(index + 15).toInt();
                     }
 
+                    headersDone = true;
                     break;  // headers done
                 }
             }
         }
+
+        if (!headersDone) {
+            DEBUG_PRINTLN("Client timed out.");
+            client.stop();
+            header = "";
+            dnsServer.processNextRequest();
+            return;
+        }
+
         String body = "";
         if (isPost && contentLength > 0) {
             unsigned long start = millis();
