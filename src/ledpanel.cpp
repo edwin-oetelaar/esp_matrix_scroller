@@ -175,6 +175,11 @@ void readConfigFromFlash(textsettings_t *settings) {
 }
 
 void LedTask(void *pvParameters) {
+    // voeding naar de ledstrip aan (MOSFET, alleen op de nieuwe hardware)
+    pinMode(LED_POWER_PIN, OUTPUT);
+    digitalWrite(LED_POWER_PIN, HIGH);
+    vTaskDelay(pdMS_TO_TICKS(10)); // voeding laten stabiliseren voor de eerste data
+
     // FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
     FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setMaxPowerInVoltsAndMilliamps(LED_VOLTS, LED_MAX_MILLIAMPS);

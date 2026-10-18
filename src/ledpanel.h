@@ -10,6 +10,12 @@
 #define NUM_LEDS WIDTH*HEIGHT
 #define DATA_PIN 33
 
+// LET OP: nieuwe hardwareversie! Een MOSFET op GPIO 21 schakelt de voeding
+// naar de ledstrip; deze pin moet HOOG zijn, anders blijft de strip donker.
+// De vorige hardwareversie had deze MOSFET niet (strip altijd gevoed).
+// Zie HARDWARE.md.
+#define LED_POWER_PIN 21
+
 // power budget for the panel, FastLED dims the frame to stay below it
 // full white on all leds at brightness 100 is ~24A, so keep this in check
 #define LED_VOLTS 5
