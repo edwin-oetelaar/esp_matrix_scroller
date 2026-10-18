@@ -1,4 +1,21 @@
-.pio
+# PlatformIO build output
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Losse build artifacts
+*.bin
+*.elf
+*.map
+*.o
+*.a
+*.hex
+
+# Editor / IDE
+.vscode/
 .ccls
 *.sublime-project
 *.sublime-workspace
+.idea/
+*.swp
+*~
