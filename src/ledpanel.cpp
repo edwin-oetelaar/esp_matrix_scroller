@@ -32,6 +32,11 @@ void setPixel(int x, int y, CRGB color) {
     }
 }
 
+// speed MIN_SPEED..MAX_SPEED -> frameperiode LED_FRAME_MAX_MS..LED_FRAME_MIN_MS
+int getFramePeriodMs(int speed) {
+    return LED_FRAME_MIN_MS + (MAX_SPEED - speed) * (LED_FRAME_MAX_MS - LED_FRAME_MIN_MS) / (MAX_SPEED - MIN_SPEED);
+}
+
 int getTextWidth(const char* text) {
     return strlen(text)*(FONT_WIDTH+FONT_SPACING);
 }
@@ -183,6 +188,8 @@ void LedTask(void *pvParameters) {
     // FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
     FastLED.addLeds<WS2812, DATA_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setMaxPowerInVoltsAndMilliamps(LED_VOLTS, LED_MAX_MILLIAMPS);
+    // vangnet: show() wacht tot het vorige frame zeker verzonden is
+    FastLED.setMaxRefreshRate(1000 / LED_FRAME_MIN_MS);
 
     xSemaphoreTake(textSettingsMutex, portMAX_DELAY);
     // Load initial settings from disk
@@ -210,7 +217,11 @@ void LedTask(void *pvParameters) {
     for (int i=0; i<10; i++) { FastLED.show(10*i); vTaskDelay(pdMS_TO_TICKS(50)); }
 
 
+    TickType_t lastWake = xTaskGetTickCount();
+
     while(true) {
+        bool saveConfig = false;
+
         xSemaphoreTake(textSettingsMutex, portMAX_DELAY);
         if (textSettings.changed) {
             // copy out vals
@@ -232,14 +243,23 @@ void LedTask(void *pvParameters) {
             }
 
             // skip rewriting flash on first boot
-            if (!firstboot) {
-                writeConfigToFlash(&textSettings);
-            }
+            saveConfig = !firstboot;
 
             firstboot = false;
             textSettings.changed = false;
         }
         xSemaphoreGive(textSettingsMutex);
+
+        if (saveConfig) {
+            // Buiten de mutex, zodat de webserver niet op de flash wacht.
+            // Het vorige frame is hier al minstens LED_FRAME_MIN_MS geleden
+            // gestart, dus de RMT is klaar en valt de cache-uit van de
+            // flash-write niet midden in een verzending.
+            textsettings_t copy = {text, fcolor, bcolor, (uint32_t)speed, false};
+            writeConfigToFlash(&copy);
+            // flash-write kost tijd; niet met een burst frames inhalen
+            lastWake = xTaskGetTickCount();
+        }
 
         if (scrolling) {
             fill_solid(leds, NUM_LEDS, bcolor);
@@ -261,13 +281,14 @@ void LedTask(void *pvParameters) {
             }
 
             FastLED.show(100);
-            vTaskDelay(pdMS_TO_TICKS(MAX_SPEED+MIN_SPEED-speed));
+            // vaste periode, onafhankelijk van render- en showtijd
+            vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(getFramePeriodMs(speed)));
         }
         else {
             fill_solid(leds, NUM_LEDS, bcolor);
             printText(text, 0, fcolor, CRGB::Black, true);
             FastLED.show(100);
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(1000));
         }
     }
 }
@@ -275,6 +296,7 @@ void LedTask(void *pvParameters) {
 int panelSetup() {
     textSettingsMutex = xSemaphoreCreateMutex();
     // Create LED task
-    xTaskCreatePinnedToCore(LedTask, "LedTask", 10000, NULL, 1, NULL,  1);
+    // prio 2: boven loop() (prio 1, zelfde core) die zonder wachten networkTick draait
+    xTaskCreatePinnedToCore(LedTask, "LedTask", 10000, NULL, 2, NULL,  1);
     return 0;
 }

@@ -24,6 +24,14 @@
 #define MIN_SPEED 10
 #define MAX_SPEED 255
 
+// Een frame naar 1024 WS2812 leds sturen duurt ~31 ms (24 bit * 1.25 us per led).
+// FastLED (RMT5, zonder DMA) schrijft bij show() de pixelbuffer van de driver
+// al voordat het wacht tot het vorige frame verzonden is; een nieuw show()
+// binnen die 31 ms geeft dus tearing. Frames nooit sneller dan dit sturen.
+#define LED_FRAME_MIN_MS 37
+// langzaamste scrollstap (bij MIN_SPEED)
+#define LED_FRAME_MAX_MS 255
+
 typedef struct _textsettings_t {
     char *text;
     CRGB fcolor;

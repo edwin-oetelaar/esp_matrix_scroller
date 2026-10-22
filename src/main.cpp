@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 
-#define FASTLED_USES_ESP32S3_I2S true
-
 #include <debug.h>
 #include <networking.h>
 #include <ledpanel.h>
