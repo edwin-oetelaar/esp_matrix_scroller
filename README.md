@@ -143,3 +143,7 @@ een watchdog-reset, of trek de USB-kabel er even uit:
   verzendbuffer al voordat het vorige frame klaar is, daarom stuurt de firmware
   nooit sneller dan één frame per 37 ms. Anders krijg je tearing. De
   snelheidsschuif (10–255) loopt van 255 ms tot 37 ms per scrollstap.
+
+## Licentie
+
+[MIT](LICENSE) © 2025-2026 Kristiyan Angelov en Edwin van den Oetelaar
