@@ -24,6 +24,24 @@ Gebruikt op **Dutch Design Week 2026** in Eindhoven.
 
 De verschillen tussen de hardwareversies staan in [HARDWARE.md](HARDWARE.md).
 
+### Onderdelen kopen
+
+Alle onderdelen zijn te koop bij [TinyTronics](https://www.tinytronics.nl/), en
+het LED-controllerboard wordt ook door TinyTronics gemaakt. Zoek op de naam of
+het artikelnummer (SKU).
+
+Voor **één** lichtkrant heb je nodig:
+
+| Aantal | Product | SKU | Prijs per stuk (incl. BTW) | Totaal (incl. BTW) |
+|---:|---|---|---:|---:|
+| 4 | WorldSemi WS2812B Digitale 5050 RGB LED - Matrix 32x8 - Flexibel | 002130 | € 22,00 | € 88,00 |
+| 1 | Universele Digitale LED Strip Controller V2 - ESP32-S3 | 007920 | € 15,75 | € 15,75 |
+| 1 | Mean Well Voeding - 5V 10A - Switching Power Supply - LRS-50-5 | 000699 | € 19,25 | € 19,25 |
+| | | | **Totaal** | **€ 123,00** |
+
+Vier panelen van 32×8 naast elkaar geven samen het display van 128×8.
+Prijzen zoals besteld in oktober 2026 (€ 101,65 ex. BTW per set).
+
 Met alle leds vol wit trekt het paneel ruim 20 A. De firmware begrenst het
 vermogen op 10 A (`LED_MAX_MILLIAMPS` in `src/ledpanel.h`). Gebruik een 5 V-voeding
 die dat aankan; de USB-poort van een laptop is daar niet geschikt voor.
